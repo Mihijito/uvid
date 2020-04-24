@@ -5,9 +5,7 @@ import './App.css';
 
 const App: React.FC = () => (
   <div className="App" >
-    <header className="App-header">
-      <RouterView className="flex flex-col flex-grow mt-12 w-full" routes={routes} />
-    </header>
+    <RouterView className="flex flex-col flex-grow w-full" routes={routes} />
   </div >
 );
 
