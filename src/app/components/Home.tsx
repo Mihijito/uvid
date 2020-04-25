@@ -1,8 +1,9 @@
-import React from 'react';
-import { Link, useHistory } from 'react-router-dom';
+import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 
 const Home: React.FC = () => {
-  const history = useHistory();
+  const [username, setUsername] = useState("");
+
 
   return (
     <div className="mt-12 mb-12 flex flex-col items-center">
@@ -10,10 +11,14 @@ const Home: React.FC = () => {
         Welcome to UVID
     </div>
       <div>
-        <input className="text-black text-center" type="text" placeholder="Please enter your name" />
+        <input
+          className="text-black text-center"
+          type="text"
+          placeholder="Please enter your name"
+          onChange={(e) => setUsername(e.target.value)} />
       </div>
       <div>
-        <Link to="conferenceRoom">
+        <Link to={`/conferenceRoom/${username}`}>
           <button>
             Create a room
           </button>
