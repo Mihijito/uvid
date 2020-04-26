@@ -3,6 +3,7 @@ export default class RoomCollection {
 
   private createNewRoom = (roomId: string) => {
     if (!this.socketsByRoomId[roomId]) this.socketsByRoomId[roomId] = [];
+    console.log(`Room ${roomId} created.`)
   };
 
   public addSocket = (roomId: string, socketId: string): void => {
@@ -18,12 +19,10 @@ export default class RoomCollection {
   }
 
   public removeSocket = (roomId: string, socketId: string) => {
-    console.log(`Remove socket ${socketId}`);
     const socketIdIndex = this.socketsByRoomId[roomId].indexOf(socketId);
     if (socketIdIndex > -1) {
       this.socketsByRoomId[roomId].splice(socketIdIndex, 1);
     }
-    console.log(this.socketsByRoomId[roomId]);
   };
 
   private has = (roomId: string) => {

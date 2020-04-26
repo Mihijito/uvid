@@ -8,24 +8,34 @@ socket.emit('connection');
 const ConferenceRoom: React.FC = () => {
   const { username, roomId } = useParams();
   const shareLinkPresenter = useRef<HTMLDivElement>(null);
+  const [connectedUsers, updateConnectedUsers] = useState<string[]>([]);
 
   useEffect(() => {
     console.log(username);
     if (username && roomId) socket.emit('connect-to-room', JSON.stringify({ username, roomId }));
+
   }, [username, roomId]);
+
+  useEffect(() => {
+    socket.on('update-user-list', (userList: string) => {
+      if (userList) {
+        const parsedUserList = JSON.parse(userList);
+        if (parsedUserList.length > 0) {
+          updateConnectedUsers(parsedUserList);
+          console.log(`Connected users ${userList}`);
+        }
+      }
+    });
+
+    return () => {
+      socket.emit('disconnect');
+    }
+  }, [connectedUsers])
 
   useEffect(() => {
     if (roomId && shareLinkPresenter.current) shareLinkPresenter.current.classList.remove('hidden');
   }, [roomId]);
 
-  useEffect(() => () => {
-    if (username && roomId) {
-      console.log(username);
-      console.log('lmao');
-      console.log(roomId);
-      socket.emit('disconnect', JSON.stringify({ username, roomId }));
-    }
-  }, [username, roomId]);
 
   return (
     <div className="mt-12 mb-12 flex flex-col items-center">
