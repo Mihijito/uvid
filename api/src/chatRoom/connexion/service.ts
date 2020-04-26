@@ -1,6 +1,6 @@
 import SocketIO, { Socket } from 'socket.io';
 import { Server } from 'http';
-import generateId, { RoomId } from './idGenerator';
+import RoomCollection from './types';
 
 interface ChatRoomConnexionService {
   openConnexion(): void;
@@ -9,13 +9,15 @@ interface ChatRoomConnexionService {
 const enum ChatRoomEvent {
   CONNECT = 'connection',
   DISCONNECT = 'disconnect',
-  CREATE_ROOM = 'create-room',
-  ROOM_ID = 'room-id'
+  CONNECT_TO_ROOM = 'connect-to-room',
+  ROOM_ID = 'room-id',
+  JOIN_ROOM = 'join-room',
+  CONNECTED_USERS_IN_ROOM = 'connected-users-in-room',
 }
 
-type room = {
-  socketId: string,
-  roomId: RoomId,
+type User = {
+  username: string,
+  roomId: string,
 }
 
 export class ChatRoomConnexionServiceImpl implements ChatRoomConnexionService {
@@ -25,40 +27,56 @@ export class ChatRoomConnexionServiceImpl implements ChatRoomConnexionService {
 
   private port: string;
 
-  private clientRoomsByClientUsername = new Map<string, room>();
+  private userBySocketId: Map<string, User> = new Map<string, User>();
+
+  private openedRooms: RoomCollection;
 
   constructor(port: string, serverInstance: Server) {
     this.port = port;
     this.server = serverInstance;
     this.io = SocketIO(this.server);
+    this.openedRooms = new RoomCollection();
   }
 
   private listen(): void {
     console.log(`Chatroom service listening on ${this.port}`);
 
     this.io.on(ChatRoomEvent.CONNECT, (socket: Socket) => {
-      socket.on(ChatRoomEvent.CREATE_ROOM, (username: string) => {
-        const roomId: RoomId = generateId();
-        socket.emit(ChatRoomEvent.ROOM_ID, roomId.getValue());
+      socket.on(ChatRoomEvent.CONNECT_TO_ROOM, (newRoom: string) => {
+        const { username, roomId } = JSON.parse(newRoom);
 
-        this.registerClientRoom(username, roomId, socket.id);
-        console.log(`Created ${username}'s room.`);
-        console.log(this.clientRoomsByClientUsername.get(username));
+        this.registerUser(username, roomId, socket.id);
+        this.openedRooms.addSocket(roomId, socket.id);
+        console.log(`${username} connected at ${socket.id}`);
+
+        //update client user list
+        console.log(this.userBySocketId.get(socket.id));
+        console.log(this.openedRooms.getRoom(roomId));
       });
 
-      socket.on(ChatRoomEvent.DISCONNECT, (username: string) => {
-        if (this.clientRoomsByClientUsername.has(username)) this.clientRoomsByClientUsername.delete(username);
-        console.log('Client disconnected');
+      socket.on(ChatRoomEvent.DISCONNECT, () => {
+        console.log('Disconnect user');
+        this.unregisterUser(socket.id);
+        //update client user list
+        //console.log(`${username} disconnected`);
       });
     });
   }
 
-  private registerClientRoom = (clientUsername: string, roomId: RoomId, socketId: string) => {
-    if (!this.clientRoomsByClientUsername.has(clientUsername)) this.clientRoomsByClientUsername.set(clientUsername, { socketId, roomId });
-    else if (this.clientRoomsByClientUsername.has(clientUsername)) {
-      this.clientRoomsByClientUsername.delete(clientUsername);
-      this.clientRoomsByClientUsername.set(clientUsername, { socketId, roomId });
-    }
+  private unregisterUser = (socketId: string) => {
+    const user: User | undefined = this.userBySocketId.get(socketId);
+    console.log(user);
+    if (user) {
+      this.openedRooms.removeSocket(user.roomId, socketId);
+      this.userBySocketId.delete(socketId);
+      console.log(this.userBySocketId.get(socketId));
+      console.log(this.openedRooms.getRoom(user.roomId));
+    } else console.log('User not found');
+  };
+
+  private registerUser = (username: string, roomId: string, socketId: string) => {
+    const user: User = { username, roomId };
+    this.userBySocketId.set(socketId, user);
   };
 
   public openConnexion = () => {

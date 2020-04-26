@@ -3,7 +3,7 @@ import ConferenceRoom from '../components/ConferenceRoom';
 
 const routes: RouteDef[] = [
   {
-    path: '/conferenceRoom/:username',
+    path: '/conferenceRoom/:username/:roomId',
     component: ConferenceRoom,
   },
   {

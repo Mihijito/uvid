@@ -6,29 +6,26 @@ const socket = openSocket.connect('http://localhost:8080');
 socket.emit('connection');
 
 const ConferenceRoom: React.FC = () => {
-  const { username } = useParams();
-  const [shareLink, setShareLink] = useState<string>('');
+  const { username, roomId } = useParams();
   const shareLinkPresenter = useRef<HTMLDivElement>(null);
-
 
   useEffect(() => {
     console.log(username);
-    if (username) socket.emit('create-room', username);
-  }, [username]);
+    if (username && roomId) socket.emit('connect-to-room', JSON.stringify({ username, roomId }));
+  }, [username, roomId]);
 
   useEffect(() => {
-    socket.on('room-id', (roomId: string) => {
-      setShareLink(roomId);
-      if (shareLinkPresenter.current) shareLinkPresenter.current.classList.remove('hidden');
-    });
-    socket.on('like-notification', (commenterUsername: string) => {
-      //addToast(`${commenterUsername} liked your post!`, { appearance: 'success', autoDismiss: true });
-    });
-  }, [username]);
+    if (roomId && shareLinkPresenter.current) shareLinkPresenter.current.classList.remove('hidden');
+  }, [roomId]);
 
   useEffect(() => () => {
-    socket.emit('disconnect', username);
-  }, [username]);
+    if (username && roomId) {
+      console.log(username);
+      console.log('lmao');
+      console.log(roomId);
+      socket.emit('disconnect', JSON.stringify({ username, roomId }));
+    }
+  }, [username, roomId]);
 
   return (
     <div className="mt-12 mb-12 flex flex-col items-center">
@@ -38,7 +35,7 @@ const ConferenceRoom: React.FC = () => {
       <div
         ref={shareLinkPresenter}
         className="hidden">
-        {`Room link: ${`http://localhost:8080/${shareLink}`}`}
+        {`Room link: ${`http://localhost:8080/${roomId}`}`}
       </div>
       <div>
         Peeps talkin and stuff

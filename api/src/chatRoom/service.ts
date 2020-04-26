@@ -2,7 +2,7 @@ import { Server } from "http";
 import ChatRoomConnexionService, { ChatRoomConnexionServiceImpl } from './connexion/service';
 
 interface ChatRoomService {
-
+  openChatRoomServer(): void;
 }
 
 export class ChatRoomServiceImpl implements ChatRoomService {
