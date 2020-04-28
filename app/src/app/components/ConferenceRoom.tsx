@@ -1,7 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import SocketServerClient from './SocketServerClient';
 import { useParams } from 'react-router-dom';
-import { useTypedSelector } from '../../store/uvidReducer';
 
 type ConferenceRoomProps = {
   username: string,
@@ -10,7 +9,6 @@ type ConferenceRoomProps = {
 const ConferenceRoom: React.FC<ConferenceRoomProps> = () => {
   const shareLinkPresenter = useRef<HTMLDivElement>(null);
   const [connectedUsers, updateConnectedUsers] = useState<string[]>();
-  const username = useTypedSelector((state) => state.uvidReducer.username);
   const { roomId } = useParams();
 
   const onUserConnexions = (newlyConnectedUsers: string[]) => {
@@ -29,7 +27,7 @@ const ConferenceRoom: React.FC<ConferenceRoomProps> = () => {
         <div
           ref={shareLinkPresenter}
           className="hidden">
-          {`Room link: ${`http://localhost:8080/join/${username}/${roomId}`}`}
+          {`Room link: ${`http://localhost:3000/joinLink/${roomId}`}`}
         </div>
         <div>
           {connectedUsers ? connectedUsers : ''}

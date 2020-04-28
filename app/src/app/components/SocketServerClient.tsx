@@ -64,7 +64,7 @@ const SocketServerClient: React.FC<SocketServerClientProps> = ({ onConnexionOfUs
     return () => {
       socket.emit('disconnect');
     }
-  }, [connectedUsers, onConnexionOfUsers])
+  }, [connectedUsers])
 
   useEffect(() => {
     socket.on('user-disconnected', (username: string) => {
