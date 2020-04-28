@@ -73,10 +73,10 @@ export class ChatRoomConnexionServiceImpl implements ChatRoomConnexionService {
       });
 
       socket.on(ChatRoomEvent.CALL_REQUEST, (requestInfos: string) => {
-        const { otherUserUsername, offer } = JSON.parse(requestInfos);
-        const socketId = this.socketIdByUsername.get(otherUserUsername);
+        const { username, offer } = JSON.parse(requestInfos);
+        const socketId = this.socketIdByUsername.get(username);
 
-        console.log(`Call reqeuest received ${socketId}`);
+        console.log(`Call request received ${socketId}`);
         console.log(this.userBySocketId.get(socket.id)?.username);
         if (socketId) socket.to(socketId).emit(ChatRoomEvent.CALL_OFFER, this.userBySocketId.get(socket.id)?.username);
       })

@@ -1,41 +1,34 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import openSocket from 'socket.io-client';
 import { useTypedSelector } from '../../store/uvidReducer';
-//import { makeRtcConnexion, createOffer } from '../webRtc/webRtcUtils';
+import { createOffer, makeRtcConnexion } from '../webRtc/webRtcUtils';
 import { useDispatch } from 'react-redux';
 import { initializeUserList, addUserToUserList, removeUserFromList } from '../../store/actions';
 
-type SocketServerClientProps = {
-  onConnexionOfUsers: Function,
-}
-
 const socket = openSocket.connect('http://localhost:8080');
 socket.emit('connection');
-//const peerConnexion = makeRtcConnexion();
 
-const SocketServerClient: React.FC<SocketServerClientProps> = ({ onConnexionOfUsers }) => {
+const SocketServerClient: React.FC = () => {
   const dispatch = useDispatch();
   const { roomId } = useParams();
   const username = useTypedSelector((state) => state.uvidReducer.username);
   const action = useTypedSelector((state) => state.uvidReducer.connectionRequest);
-  const userList = useTypedSelector((state) => state.uvidReducer.userList);
-
-
-  useEffect(() => {
-    if (!userList.empty) onConnexionOfUsers(Object.keys(userList));
-  }, [userList])
+  const [peerConnection, createPeerConnection] = useState<RTCPeerConnection>();
 
   useEffect(() => {
     if (username && roomId && action === 'create') {
       console.log(`Create ${roomId}`)
       socket.emit('create-room', JSON.stringify({ username, roomId }));
-
+      const newPeerConnection = makeRtcConnexion();
+      createPeerConnection(newPeerConnection)
     } else if (username && roomId && action === 'join') {
       console.log(`Join ${roomId}`)
       socket.emit('join-room', JSON.stringify({ username, roomId }));
+      const newPeerConnection = makeRtcConnexion();
+      createPeerConnection(newPeerConnection)
     }
-  }, [username, roomId, action]);
+  }, [username, roomId, action, dispatch]);
 
   useEffect(() => {
     socket.on('initialise-userList', (userList: string) => {
@@ -52,14 +45,21 @@ const SocketServerClient: React.FC<SocketServerClientProps> = ({ onConnexionOfUs
     socket.on('call-offer', (username: string) => {
       console.log(`Call offer received from ${username}`);
     });
-  });
+  }, []);
 
   useEffect(() => {
     socket.on('user-joined', (username: string) => {
       dispatch(addUserToUserList(username))
-      console.log(`${username} joined`)
+      if (peerConnection) {
+        const offer = createOffer(peerConnection);
+        offer.then(() => {
+          socket.emit('call-request', JSON.stringify({ username, offer }));
+          console.log(`Call request sent to ${username}`)
+        })
+      }
+      console.log(`${username} joined`);
     });
-  }, [dispatch]);
+  }, [dispatch, peerConnection]);
 
   useEffect(() => {
     socket.on('user-disconnected', (username: string) => {

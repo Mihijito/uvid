@@ -3,13 +3,9 @@ const createPeerConnexion = (): RTCPeerConnection | undefined => {
   return new RTCPeerConnection();
 };
 
-const createOffer = (peerConnexion: RTCPeerConnection): RTCSessionDescriptionInit | undefined => {
-  let createdOffer: RTCSessionDescriptionInit;
-  peerConnexion.createOffer({ offerToReceiveVideo: true })
-    .then((offer: RTCSessionDescriptionInit) => {
-      createdOffer = offer!;
-    })
-  return createdOffer!;
+const createOffer = (peerConnexion: RTCPeerConnection): Promise<RTCSessionDescriptionInit> => {
+  console.log(peerConnexion);
+  return peerConnexion.createOffer({ offerToReceiveVideo: true })
 };
 
 const makeRtcConnexion = (): RTCPeerConnection => {
