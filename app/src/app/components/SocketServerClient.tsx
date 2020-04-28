@@ -1,9 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 import openSocket from 'socket.io-client';
-import ConnectedUsersCollection from '../conferenceRoom/types';
 import { useTypedSelector } from '../../store/uvidReducer';
-import { makeRtcConnexion, createOffer } from '../webRtc/webRtcUtils';
+//import { makeRtcConnexion, createOffer } from '../webRtc/webRtcUtils';
 import { useDispatch } from 'react-redux';
 import { initializeUserList, addUserToUserList, removeUserFromList } from '../../store/actions';
 
@@ -13,20 +12,19 @@ type SocketServerClientProps = {
 
 const socket = openSocket.connect('http://localhost:8080');
 socket.emit('connection');
-const peerConnexion = makeRtcConnexion();
+//const peerConnexion = makeRtcConnexion();
 
 const SocketServerClient: React.FC<SocketServerClientProps> = ({ onConnexionOfUsers }) => {
   const dispatch = useDispatch();
   const { roomId } = useParams();
-  const [connectedUsers, setConnectedUsers] = useState<ConnectedUsersCollection>();
   const username = useTypedSelector((state) => state.uvidReducer.username);
   const action = useTypedSelector((state) => state.uvidReducer.connectionRequest);
   const userList = useTypedSelector((state) => state.uvidReducer.userList);
 
+
   useEffect(() => {
-    onConnexionOfUsers(Object.keys(userList));
-    console.log(userList);
-  }, [userList]);
+    if (!userList.empty) onConnexionOfUsers(Object.keys(userList));
+  }, [userList])
 
   useEffect(() => {
     if (username && roomId && action === 'create') {
@@ -45,12 +43,10 @@ const SocketServerClient: React.FC<SocketServerClientProps> = ({ onConnexionOfUs
         const parsedUserList: string[] = JSON.parse(userList);
         if (parsedUserList.length > 0) {
           dispatch(initializeUserList(parsedUserList));
-          console.log(`Connected users ${userList}`);
-          onConnexionOfUsers(parsedUserList);
         }
       }
     });
-  }, [dispatch, onConnexionOfUsers])
+  }, [dispatch])
 
   useEffect(() => {
     socket.on('call-offer', (username: string) => {
