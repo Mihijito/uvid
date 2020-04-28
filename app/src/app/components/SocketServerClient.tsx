@@ -50,12 +50,6 @@ const SocketServerClient: React.FC<SocketServerClientProps> = ({ onConnexionOfUs
       }
     });
 
-    socket.on('user-joined', (username: string) => {
-      if (connectedUsers) {
-        console.log(`${username} joined`)
-        connectedUsers.addUser(username);
-      }
-    });
 
     socket.on('call-offer', (username: string) => {
       console.log(`Call offer received from ${username}`);
@@ -64,7 +58,16 @@ const SocketServerClient: React.FC<SocketServerClientProps> = ({ onConnexionOfUs
     return () => {
       socket.emit('disconnect');
     }
-  }, [connectedUsers])
+  }, [connectedUsers, onConnexionOfUsers])
+
+  useEffect(() => {
+    socket.on('user-joined', (username: string) => {
+      if (connectedUsers) {
+        console.log(`${username} joined`)
+        connectedUsers.addUser(username);
+      }
+    });
+  }, [connectedUsers]);
 
   useEffect(() => {
     socket.on('user-disconnected', (username: string) => {
