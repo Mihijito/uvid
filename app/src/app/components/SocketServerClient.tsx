@@ -3,6 +3,9 @@ import { useParams } from 'react-router-dom';
 import openSocket from 'socket.io-client';
 import ConnectedUsersCollection from '../conferenceRoom/types';
 import { useTypedSelector } from '../../store/uvidReducer';
+import { makeRtcConnexion, createOffer } from '../webRtc/webRtcUtils';
+import { useDispatch } from 'react-redux';
+import { initializeUserList, addUserToUserList, removeUserFromList } from '../../store/actions';
 
 type SocketServerClientProps = {
   onConnexionOfUsers: Function,
@@ -10,26 +13,26 @@ type SocketServerClientProps = {
 
 const socket = openSocket.connect('http://localhost:8080');
 socket.emit('connection');
+const peerConnexion = makeRtcConnexion();
 
 const SocketServerClient: React.FC<SocketServerClientProps> = ({ onConnexionOfUsers }) => {
+  const dispatch = useDispatch();
   const { roomId } = useParams();
   const [connectedUsers, setConnectedUsers] = useState<ConnectedUsersCollection>();
   const username = useTypedSelector((state) => state.uvidReducer.username);
   const action = useTypedSelector((state) => state.uvidReducer.connectionRequest);
+  const userList = useTypedSelector((state) => state.uvidReducer.userList);
 
   useEffect(() => {
-    if (!connectedUsers) {
-      setConnectedUsers(new ConnectedUsersCollection());
-    }
-  }, [connectedUsers, setConnectedUsers])
+    onConnexionOfUsers(Object.keys(userList));
+    console.log(userList);
+  }, [userList]);
 
   useEffect(() => {
-    console.log(username)
-    console.log(roomId)
-    console.log(action)
     if (username && roomId && action === 'create') {
       console.log(`Create ${roomId}`)
       socket.emit('create-room', JSON.stringify({ username, roomId }));
+
     } else if (username && roomId && action === 'join') {
       console.log(`Join ${roomId}`)
       socket.emit('join-room', JSON.stringify({ username, roomId }));
@@ -39,45 +42,37 @@ const SocketServerClient: React.FC<SocketServerClientProps> = ({ onConnexionOfUs
   useEffect(() => {
     socket.on('initialise-userList', (userList: string) => {
       if (userList) {
-        const parsedUserList = JSON.parse(userList);
+        const parsedUserList: string[] = JSON.parse(userList);
         if (parsedUserList.length > 0) {
-          if (connectedUsers) {
-            connectedUsers.addUsers(parsedUserList);
-            console.log(`Connected users ${userList}`);
-          }
+          dispatch(initializeUserList(parsedUserList));
+          console.log(`Connected users ${userList}`);
           onConnexionOfUsers(parsedUserList);
         }
       }
     });
+  }, [dispatch, onConnexionOfUsers])
 
-
+  useEffect(() => {
     socket.on('call-offer', (username: string) => {
       console.log(`Call offer received from ${username}`);
     });
-
-    return () => {
-      socket.emit('disconnect');
-    }
-  }, [connectedUsers, onConnexionOfUsers])
+  });
 
   useEffect(() => {
     socket.on('user-joined', (username: string) => {
-      if (connectedUsers) {
-        console.log(`${username} joined`)
-        connectedUsers.addUser(username);
-      }
+      dispatch(addUserToUserList(username))
+      console.log(`${username} joined`)
     });
-  }, [connectedUsers]);
+  }, [dispatch]);
 
   useEffect(() => {
     socket.on('user-disconnected', (username: string) => {
-      if (connectedUsers && connectedUsers.userConnected(username)) {
-        connectedUsers.removeUser(username);
-
-        console.log(`${username} quit`);
-      }
+      dispatch(removeUserFromList(username));
+      console.log(`${username} quit`);
     });
-  }, [connectedUsers]);
+  }, [dispatch]);
+
+  useEffect(() => () => { socket.emit('disconnect') });
 
   return (null);
 };

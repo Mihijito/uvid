@@ -1,29 +1,33 @@
 class ConnectedUsersCollection {
-  private connectedUsersArray: Array<string>;
+  private peerConnexionByUsername: { [key: string]: any };
 
   constructor() {
-    this.connectedUsersArray = new Array<string>();
+    this.peerConnexionByUsername = {};
   }
 
   addUser = (username: string) => {
-    if (!this.connectedUsersArray.includes(username)) this.connectedUsersArray.push(username);
+    if (!(username in this.peerConnexionByUsername)) this.peerConnexionByUsername[username] = {};
   };
 
   addUsers = (usernames: string[]) => {
+    console.log('called once');
     usernames.forEach((username: string) => {
-      if (!this.connectedUsersArray.includes(username)) this.connectedUsersArray.push(username);
+      if (!(username in this.peerConnexionByUsername)) this.peerConnexionByUsername[username] = {};
     });
   };
 
   removeUser = (username: string) => {
-    if (this.connectedUsersArray.includes(username)) {
-      const index = this.connectedUsersArray.indexOf(username);
-      this.connectedUsersArray.splice(index, 1);
+    if (username in this.peerConnexionByUsername) {
+      delete this.peerConnexionByUsername[username];
     }
   }
 
   userConnected = (username: string) => {
-    return this.connectedUsersArray.includes(username);
+    return username in this.peerConnexionByUsername;
+  }
+
+  getUsernameList = () => {
+    return Object.keys(this.peerConnexionByUsername);
   }
 }
 

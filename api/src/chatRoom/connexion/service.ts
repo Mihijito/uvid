@@ -67,6 +67,7 @@ export class ChatRoomConnexionServiceImpl implements ChatRoomConnexionService {
           this.registerUser(username, roomId, socket.id);
           this.openedRooms.addSocket(roomId, socket.id);
 
+          this.updateClientUserList(socket, roomId);
           socket.to(roomId).emit(ChatRoomEvent.USER_JOINED, username);
         }
       });
@@ -93,7 +94,7 @@ export class ChatRoomConnexionServiceImpl implements ChatRoomConnexionService {
 
   private updateClientUserList(socket: Socket, roomId: string) {
     const userList = this.createClientUserList(socket, roomId);
-    this.io.to(roomId).emit(ChatRoomEvent.INITIALIZE_USERLIST, JSON.stringify(userList));
+    socket.emit(ChatRoomEvent.INITIALIZE_USERLIST, JSON.stringify(userList));
   };
 
   private unregisterUser = (socketId: string): boolean => {
