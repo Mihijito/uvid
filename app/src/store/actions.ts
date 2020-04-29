@@ -4,6 +4,8 @@ export const REQUEST_CONNECTION = 'REQUEST_CONNECTION';
 export const INIT_USERLIST = 'INIT_USERLIST';
 export const ADD_USER = 'ADD_USER';
 export const REMOVE_USER = 'REMOVE_USER';
+export const ADD_LOCAL_DESCRIPTION = 'ADD_LOCAL_DESCRIPTION';
+export const ADD_REMOTE_DESCRIPTION = 'ADD_REMOTE_DESCRIPTION';
 
 export interface SaveRoomIdActionType {
   type: typeof SAVE_ROOMID;
@@ -37,6 +39,7 @@ export interface addUserToUserListActionType {
   type: typeof ADD_USER;
   payload: {
     user: string;
+    peerConnection: RTCPeerConnection;
   }
 }
 
@@ -44,6 +47,22 @@ export interface removeUserFromUserListActionType {
   type: typeof REMOVE_USER;
   payload: {
     username: string;
+  }
+}
+
+export interface addLocalDescriptionActionType {
+  type: typeof ADD_LOCAL_DESCRIPTION;
+  payload: {
+    username: string;
+    description: RTCSessionDescriptionInit;
+  }
+}
+
+export interface addRemoteDescriptionActionType {
+  type: typeof ADD_REMOTE_DESCRIPTION;
+  payload: {
+    username: string;
+    description: RTCSessionDescriptionInit;
   }
 }
 
@@ -84,11 +103,12 @@ export function initializeUserList(userList: string[]): initializeUserListAction
   };
 }
 
-export function addUserToUserList(username: string): addUserToUserListActionType {
+export function addUserToUserList(username: string, peerConnection: RTCPeerConnection): addUserToUserListActionType {
   return {
     type: ADD_USER,
     payload: {
       user: username,
+      peerConnection,
     },
   };
 }
@@ -100,4 +120,24 @@ export function removeUserFromList(username: string): removeUserFromUserListActi
       username,
     },
   };
+}
+
+export function addLocalDescription(username: string, description: RTCSessionDescriptionInit): addLocalDescriptionActionType {
+  return {
+    type: ADD_LOCAL_DESCRIPTION,
+    payload: {
+      username,
+      description,
+    }
+  }
+}
+
+export function addRemoteDescription(username: string, description: RTCSessionDescriptionInit): addLocalDescriptionActionType {
+  return {
+    type: ADD_LOCAL_DESCRIPTION,
+    payload: {
+      username,
+      description,
+    }
+  }
 }

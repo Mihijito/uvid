@@ -14,6 +14,10 @@ import {
   initializeUserListActionType,
   addUserToUserListActionType,
   removeUserFromUserListActionType,
+  addLocalDescriptionActionType,
+  addRemoteDescriptionActionType,
+  ADD_LOCAL_DESCRIPTION,
+  ADD_REMOTE_DESCRIPTION,
 } from './actions';
 
 const uvidState: UVIDState = {
@@ -25,8 +29,16 @@ const uvidState: UVIDState = {
 
 function uvidReducer(
   state = uvidState,
-  action: SaveRoomIdActionType | SaveUsernameActionType | requestConnectionActionType | initializeUserListActionType | addUserToUserListActionType | removeUserFromUserListActionType,
+  action: SaveRoomIdActionType
+    | SaveUsernameActionType
+    | requestConnectionActionType
+    | initializeUserListActionType
+    | addUserToUserListActionType
+    | removeUserFromUserListActionType
+    | addLocalDescriptionActionType
+    | addRemoteDescriptionActionType,
 ): UVIDState {
+  let tempUserList = { ...state.userList };
   switch (action.type) {
     case SAVE_ROOMID:
       return {
@@ -46,25 +58,38 @@ function uvidReducer(
     case INIT_USERLIST:
       const newUsers: { [key: string]: any } = {};
       action.payload.userList.forEach((username: string) => {
-        if (!(username in state.userList)) newUsers[username] = {};
+        if (!(username in state.userList)) newUsers[username] = new RTCPeerConnection();
       });
       return {
         ...state,
         userList: { ...state.userList, ...newUsers },
       };
     case ADD_USER:
-      const newUser: { [key: string]: any } = {};
-      if (!(action.payload.user in state.userList)) newUser[action.payload.user] = {};
+      const newUser: { [key: string]: RTCPeerConnection } = {};
+      if (!(action.payload.user in state.userList)) newUser[action.payload.user] = action.payload.peerConnection;
       return {
         ...state,
         userList: { ...state.userList, ...newUser },
       };
     case REMOVE_USER:
-      if (action.payload.username in state.userList) delete state.userList[action.payload.username];
+      if (action.payload.username in tempUserList) delete tempUserList[action.payload.username];
       return {
         ...state,
-        userList: { ...state.userList },
+        userList: { ...tempUserList },
       };
+    case ADD_LOCAL_DESCRIPTION:
+      console.log(tempUserList)
+      console.log(action.payload.username);
+      if (action.payload.username in tempUserList) tempUserList[action.payload.username].setLocalDescription(action.payload.description);
+      return {
+        ...state,
+        userList: { ...tempUserList }
+      }
+    case ADD_REMOTE_DESCRIPTION:
+      return {
+        ...state,
+        userList: { ...tempUserList }
+      }
     default:
       return state;
   }

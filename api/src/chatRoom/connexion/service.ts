@@ -6,7 +6,7 @@ interface ChatRoomConnexionService {
   openConnexion(): void;
 }
 
-const enum ChatRoomEvent {
+const enum ConferenceEvents {
   CONNECT = 'connection',
   DISCONNECT = 'disconnect',
   JOIN_ROOM = 'join-room',
@@ -17,6 +17,8 @@ const enum ChatRoomEvent {
   CREATE_ROOM = 'create-room',
   USER_DISCONNECTED = 'user-disconnected',
   USER_JOINED = 'user-joined',
+  CALL_RESPONSE = 'call-response',
+  CALL_ANSWER = 'call-answer',
 }
 
 type User = {
@@ -47,8 +49,8 @@ export class ChatRoomConnexionServiceImpl implements ChatRoomConnexionService {
   private listen(): void {
     console.log(`Chatroom service listening on ${this.port}`);
 
-    this.io.on(ChatRoomEvent.CONNECT, (socket: Socket) => {
-      socket.on(ChatRoomEvent.CREATE_ROOM, (newRoom: string) => {
+    this.io.on(ConferenceEvents.CONNECT, (socket: Socket) => {
+      socket.on(ConferenceEvents.CREATE_ROOM, (newRoom: string) => {
         const { username, roomId } = JSON.parse(newRoom);
         socket.join(roomId);
 
@@ -58,7 +60,7 @@ export class ChatRoomConnexionServiceImpl implements ChatRoomConnexionService {
         this.updateClientUserList(socket, roomId);
       });
 
-      socket.on(ChatRoomEvent.JOIN_ROOM, (newRoom: string) => {
+      socket.on(ConferenceEvents.JOIN_ROOM, (newRoom: string) => {
         const { username, roomId } = JSON.parse(newRoom);
         if (username && roomId) {
           console.log(`${username} requested connection at ${socket.id}`);
@@ -68,25 +70,34 @@ export class ChatRoomConnexionServiceImpl implements ChatRoomConnexionService {
           this.openedRooms.addSocket(roomId, socket.id);
 
           this.updateClientUserList(socket, roomId);
-          socket.to(roomId).emit(ChatRoomEvent.USER_JOINED, username);
+          socket.to(roomId).emit(ConferenceEvents.USER_JOINED, username);
         }
       });
 
-      socket.on(ChatRoomEvent.CALL_REQUEST, (requestInfos: string) => {
-        const { username, offer } = JSON.parse(requestInfos);
-        const socketId = this.socketIdByUsername.get(username);
+      socket.on(ConferenceEvents.CALL_REQUEST, (requestInfos: string) => {
+        const { callee, offer } = JSON.parse(requestInfos);
+        const socketId = this.socketIdByUsername.get(callee);
 
         console.log(`Call request received ${socketId}`);
-        console.log(this.userBySocketId.get(socket.id)?.username);
-        if (socketId) socket.to(socketId).emit(ChatRoomEvent.CALL_OFFER, this.userBySocketId.get(socket.id)?.username);
+        const callerUsername = this.userBySocketId.get(socket.id)?.username;
+        if (socketId) socket.to(socketId).emit(ConferenceEvents.CALL_OFFER, JSON.stringify({ callerUsername, offer }));
       })
 
-      socket.on(ChatRoomEvent.DISCONNECT, () => {
+      socket.on(ConferenceEvents.CALL_RESPONSE, (responseInfos: string) => {
+        const { callerUsername, answer } = JSON.parse(responseInfos);
+        const socketId = this.socketIdByUsername.get(callerUsername);
+        const calleeUsername = this.userBySocketId.get(socket.id)?.username;
+
+        console.log(`Call response received ${socketId} from ${callerUsername}`);
+        if (socketId) socket.to(socketId).emit(ConferenceEvents.CALL_ANSWER, JSON.stringify({ calleeUsername, answer }))
+      })
+
+      socket.on(ConferenceEvents.DISCONNECT, () => {
         console.log('Disconnect user');
         const user = this.userBySocketId.get(socket.id);
         const roomId = user?.roomId;
         this.unregisterUser(socket.id);
-        socket.to(roomId!).emit(ChatRoomEvent.USER_DISCONNECTED, user?.username);
+        socket.to(roomId!).emit(ConferenceEvents.USER_DISCONNECTED, user?.username);
       });
     });
   }
@@ -94,7 +105,7 @@ export class ChatRoomConnexionServiceImpl implements ChatRoomConnexionService {
 
   private updateClientUserList(socket: Socket, roomId: string) {
     const userList = this.createClientUserList(socket, roomId);
-    socket.emit(ChatRoomEvent.INITIALIZE_USERLIST, JSON.stringify(userList));
+    socket.emit(ConferenceEvents.INITIALIZE_USERLIST, JSON.stringify(userList));
   };
 
   private unregisterUser = (socketId: string): boolean => {

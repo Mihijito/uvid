@@ -1,69 +1,94 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import openSocket from 'socket.io-client';
 import { useTypedSelector } from '../../store/uvidReducer';
-import { createOffer, makeRtcConnexion } from '../webRtc/webRtcUtils';
+// import { createOffer, createAnswer } from '../webRtc/webRtcUtils';
 import { useDispatch } from 'react-redux';
-import { initializeUserList, addUserToUserList, removeUserFromList } from '../../store/actions';
+// import {
+//   initializeUserList,
+//   addUserToUserList,
+//   removeUserFromList,
+//   addRemoteDescription,
+//   addLocalDescription,
+// } from '../../store/actions';
+import ConnectedUsersCollection from '../conferenceRoom/types';
 
 const socket = openSocket.connect('http://localhost:8080');
 socket.emit('connection');
+
+const userList = new ConnectedUsersCollection();
 
 const SocketServerClient: React.FC = () => {
   const dispatch = useDispatch();
   const { roomId } = useParams();
   const username = useTypedSelector((state) => state.uvidReducer.username);
   const action = useTypedSelector((state) => state.uvidReducer.connectionRequest);
-  const [peerConnection, createPeerConnection] = useState<RTCPeerConnection>();
 
   useEffect(() => {
     if (username && roomId && action === 'create') {
       console.log(`Create ${roomId}`)
       socket.emit('create-room', JSON.stringify({ username, roomId }));
-      const newPeerConnection = makeRtcConnexion();
-      createPeerConnection(newPeerConnection)
     } else if (username && roomId && action === 'join') {
       console.log(`Join ${roomId}`)
       socket.emit('join-room', JSON.stringify({ username, roomId }));
-      const newPeerConnection = makeRtcConnexion();
-      createPeerConnection(newPeerConnection)
     }
-  }, [username, roomId, action, dispatch]);
+  }, [username, roomId, action]);
 
   useEffect(() => {
-    socket.on('initialise-userList', (userList: string) => {
-      if (userList) {
-        const parsedUserList: string[] = JSON.parse(userList);
+    socket.on('initialise-userList', (connectedUsersList: string) => {
+      if (connectedUsersList) {
+        const parsedUserList: string[] = JSON.parse(connectedUsersList);
         if (parsedUserList.length > 0) {
-          dispatch(initializeUserList(parsedUserList));
+          userList.addUsers(parsedUserList);
         }
       }
     });
-  }, [dispatch])
+  }, [])
 
   useEffect(() => {
-    socket.on('call-offer', (username: string) => {
-      console.log(`Call offer received from ${username}`);
+    socket.on('user-joined', (username: string) => {
+      const peerConnection = new RTCPeerConnection();
+      console.log(`${username} joined`);
+      if (peerConnection) {
+        peerConnection.createOffer({ offerToReceiveVideo: true, offerToReceiveAudio: true })
+          .then((offer: RTCSessionDescriptionInit) => {
+            socket.emit('call-request', JSON.stringify({ callee: username, offer }));
+            console.log(`Call request sent to ${username}`)
+            peerConnection.setLocalDescription(offer);
+            userList.addUser(username, peerConnection);
+          });
+      }
     });
   }, []);
 
   useEffect(() => {
-    socket.on('user-joined', (username: string) => {
-      dispatch(addUserToUserList(username))
+    socket.on('call-offer', (offerInfos: string) => {
+      const { callerUsername, offer } = JSON.parse(offerInfos);
+      console.log(offer);
+      console.log(`Call offer received from ${callerUsername}, send answer to ${callerUsername}`);
+      userList.addRemoteDescription(callerUsername, offer);
+      const peerConnection = userList.get(callerUsername);
       if (peerConnection) {
-        const offer = createOffer(peerConnection);
-        offer.then(() => {
-          socket.emit('call-request', JSON.stringify({ username, offer }));
-          console.log(`Call request sent to ${username}`)
-        })
+        peerConnection.createAnswer()
+          .then((answer: RTCSessionDescriptionInit) => {
+            userList.addLocalDescription(callerUsername, answer);
+            socket.emit('call-response', JSON.stringify({ callerUsername, answer }));
+          });
       }
-      console.log(`${username} joined`);
     });
-  }, [dispatch, peerConnection]);
+  }, []);
+
+  useEffect(() => {
+    socket.on('call-answer', (offerInfos: string) => {
+      const { calleeUsername, answer } = JSON.parse(offerInfos);
+      if (userList.get(calleeUsername) && calleeUsername) userList.get(calleeUsername)?.setRemoteDescription(answer);
+      console.log(`Call answer received from ${calleeUsername}`);
+    });
+  }, []);
 
   useEffect(() => {
     socket.on('user-disconnected', (username: string) => {
-      dispatch(removeUserFromList(username));
+      userList.removeUser(username);
       console.log(`${username} quit`);
     });
   }, [dispatch]);
