@@ -18,7 +18,7 @@ import generateId from '../roomIdGenerator/idGenerator';
 export default {
   name: 'Home',
   data: () => ({
-      username: '',
+    username: '',
   }),
   methods: {
     ...mapActions([
@@ -29,6 +29,7 @@ export default {
         this.createUser(this.username);
         const roomId = await generateId();
 
+        this.$socket.emit('create-room', JSON.stringify({ username: this.username, roomId }));
         this.$router.push({ name: 'Room', params: { roomId } });
       }
     }

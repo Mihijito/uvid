@@ -20,14 +20,15 @@ export default {
   }),
   methods: {
     joinRoom() {
-      if (this.username) {
+      if (this.username && this.roomId) {
+        this.$socket.emit('join-room', JSON.stringify({ username: this.username, roomId: this.roomId }));
         this.$router.push({ name: 'Room', params: { roomId: this.roomId } });
       }
     }
   },
   created() {
     this.roomId = this.$route.params.roomId;
-  },
+  }
 }
 </script>
 

@@ -51,8 +51,8 @@ export class ChatRoomConnexionServiceImpl implements ChatRoomConnexionService {
 
     this.io.on(ConferenceEvents.CONNECT, (socket: Socket) => {
       socket.on(ConferenceEvents.CREATE_ROOM, (newRoom: string) => {
+        console.log('dlksa');
         const { username, roomId } = JSON.parse(newRoom);
-        console.log(`${username} && ${roomId}`);
         socket.join(roomId);
 
         this.registerUser(username, roomId, socket.id);
@@ -91,6 +91,14 @@ export class ChatRoomConnexionServiceImpl implements ChatRoomConnexionService {
 
         console.log(`Call response received ${socketId} from ${callerUsername}`);
         if (socketId) socket.to(socketId).emit(ConferenceEvents.CALL_ANSWER, JSON.stringify({ calleeUsername, answer }))
+      })
+
+      socket.on('disconnect-user', () => {
+        console.log('Disconnect user');
+        const user = this.userBySocketId.get(socket.id);
+        const roomId = user?.roomId;
+        this.unregisterUser(socket.id);
+        socket.to(roomId!).emit(ConferenceEvents.USER_DISCONNECTED, user?.username);
       })
 
       socket.on(ConferenceEvents.DISCONNECT, () => {

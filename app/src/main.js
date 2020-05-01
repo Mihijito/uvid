@@ -12,13 +12,13 @@ Vue.config.productionTip = false
 const router = new VueRouter({ routes });
 
 Vue.use(new VueSocketIO({
-debug: true,
-connection: 'http://localhost:8080',
-vuex: {
-    store,
-    actionPrefix: 'SOCKET_',
-    mutationPrefix: 'SOCKET_'
-},
+  debug: true,
+  connection: 'http://localhost:8080',
+  vuex: {
+      store,
+      actionPrefix: 'SOCKET_',
+      mutationPrefix: 'SOCKET_'
+  },
 }))
 
 new Vue({
