@@ -11,14 +11,14 @@ const enum ConferenceEvents {
   DISCONNECT = 'disconnect',
   JOIN_ROOM = 'join-room',
   ROOM_ID = 'room-id',
-  INITIALIZE_USERLIST = 'initialise-userList',
   CALL_REQUEST = 'call-request',
   CALL_OFFER = 'call-offer',
   CREATE_ROOM = 'create-room',
   USER_DISCONNECTED = 'user-disconnected',
-  USER_JOINED = 'user-joined',
+  USER_JOINED = 'userJoined',
   CALL_RESPONSE = 'call-response',
   CALL_ANSWER = 'call-answer',
+  INIT_USERLIST = 'initUserList',
 }
 
 type User = {
@@ -51,7 +51,6 @@ export class ChatRoomConnexionServiceImpl implements ChatRoomConnexionService {
 
     this.io.on(ConferenceEvents.CONNECT, (socket: Socket) => {
       socket.on(ConferenceEvents.CREATE_ROOM, (newRoom: string) => {
-        console.log('dlksa');
         const { username, roomId } = JSON.parse(newRoom);
         socket.join(roomId);
 
@@ -114,7 +113,7 @@ export class ChatRoomConnexionServiceImpl implements ChatRoomConnexionService {
 
   private updateClientUserList(socket: Socket, roomId: string) {
     const userList = this.createClientUserList(roomId);
-    socket.emit(ConferenceEvents.INITIALIZE_USERLIST, JSON.stringify(userList));
+    socket.emit(ConferenceEvents.INIT_USERLIST, userList);
   };
 
   private unregisterUser = (socketId: string): boolean => {

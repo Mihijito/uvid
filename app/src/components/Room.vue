@@ -1,6 +1,11 @@
 <template>
   <div>
     Room link: {{`http://localhost:8081/#/join/${this.$route.params.roomId}`}}
+    <div v-for="username in getUsernames()" :key="username">
+      <div>
+        {{username}}
+      </div>
+    </div>
   </div>
 </template>
 
@@ -13,13 +18,20 @@ export default {
   sockets: {
 
   },
+  methods: {
+    getUsernames() {
+      const usernames = Object.keys(this.getUsernamesList);
+      return usernames
+    }
+  },
   computed: {
     ...mapGetters([
       'getRoomOwner',
+      'getUsernamesList',
     ]),
   },
   beforeRouteLeave(from, to, next) {
-    Vue.prototype.$socket.emit('disconnect-user');
+    Vue.prototype.$socket.client.emit('disconnect-user');
     next();
   }
 }

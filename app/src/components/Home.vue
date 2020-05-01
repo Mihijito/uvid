@@ -29,7 +29,7 @@ export default {
         this.createUser(this.username);
         const roomId = await generateId();
 
-        this.$socket.emit('create-room', JSON.stringify({ username: this.username, roomId }));
+        this.$socket.client.emit('create-room', JSON.stringify({ username: this.username, roomId }));
         this.$router.push({ name: 'Room', params: { roomId } });
       }
     }

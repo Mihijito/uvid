@@ -1,9 +1,10 @@
 import Vue from 'vue';
 import App from './App.vue';
 import VueRouter from 'vue-router';
-import VueSocketIO from 'vue-socket.io';
+import VueSocketIOExt from 'vue-socket.io-extended';
 import routes from './router/routes';
 import store from './store';
+import io from 'socket.io-client';
 
 Vue.use(VueRouter);
 
@@ -11,15 +12,8 @@ Vue.config.productionTip = false
 
 const router = new VueRouter({ routes });
 
-Vue.use(new VueSocketIO({
-  debug: true,
-  connection: 'http://localhost:8080',
-  vuex: {
-      store,
-      actionPrefix: 'SOCKET_',
-      mutationPrefix: 'SOCKET_'
-  },
-}))
+const socket = io('http://localhost:8080');
+Vue.use(VueSocketIOExt, socket, { store });
 
 new Vue({
   render: h => h(App),

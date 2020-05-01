@@ -21,7 +21,7 @@ export default {
   methods: {
     joinRoom() {
       if (this.username && this.roomId) {
-        this.$socket.emit('join-room', JSON.stringify({ username: this.username, roomId: this.roomId }));
+        this.$socket.client.emit('join-room', JSON.stringify({ username: this.username, roomId: this.roomId }));
         this.$router.push({ name: 'Room', params: { roomId: this.roomId } });
       }
     }
