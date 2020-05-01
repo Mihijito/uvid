@@ -12,6 +12,7 @@
 </template>
 
 <script>
+import openSocket from "socket.io-client";
 export default {
   name: 'RoomLobby',
   data: () => ({
@@ -26,6 +27,11 @@ export default {
   created() {
     this.roomId = this.$route.params.roomId;
   },
+  mounted() {
+    const socket = openSocket.connect('http://localhost:8080');
+    socket.emit('connection');
+    socket.emit('create-room', JSON.stringify({ username: this.username, roomId: this.roomId }));
+  }
 }
 </script>
 
