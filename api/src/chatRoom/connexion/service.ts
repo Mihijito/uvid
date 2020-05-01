@@ -12,7 +12,7 @@ const enum ConferenceEvents {
   JOIN_ROOM = 'join-room',
   ROOM_ID = 'room-id',
   CALL_REQUEST = 'call-request',
-  CALL_OFFER = 'call-offer',
+  CALL_OFFER = 'callOffer',
   CREATE_ROOM = 'create-room',
   USER_DISCONNECTED = 'user-disconnected',
   USER_JOINED = 'userJoined',
@@ -74,8 +74,9 @@ export class ChatRoomConnexionServiceImpl implements ChatRoomConnexionService {
         }
       });
 
-      socket.on(ConferenceEvents.CALL_REQUEST, (requestInfos: string) => {
+      socket.on(ConferenceEvents.CALL_REQUEST, (requestInfos: any) => {
         const { callee, offer } = JSON.parse(requestInfos);
+        console.log(callee);
         const socketId = this.socketIdByUsername.get(callee);
 
         console.log(`Call request received ${socketId}`);

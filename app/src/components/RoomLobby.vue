@@ -18,6 +18,11 @@ export default {
     roomId: '',
     username: '',
   }),
+  sockets: {
+    userJoined(username) {
+      this.$socket.client.emit('call-request',username)
+    }
+  },
   methods: {
     joinRoom() {
       if (this.username && this.roomId) {

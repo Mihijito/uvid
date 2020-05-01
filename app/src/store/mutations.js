@@ -9,9 +9,9 @@ const mutations = {
     state.roomOwner = username;
     state.userList[username] = new RTCPeerConnection();
   },
-  [mutationsTypes.ADD_USER](state, username) {
+  [mutationsTypes.ADD_USER](state, { username, connection }) {
     console.log(`${username} added`);
-    Vue.set(state.userList, username, new RTCPeerConnection());
+    Vue.set(state.userList, username, connection);
   },
 };
 
