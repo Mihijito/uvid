@@ -12,21 +12,31 @@
 </template>
 
 <script>
+import { mapActions, mapGetters } from 'vuex';
 import generateId from '../roomIdGenerator/idGenerator';
 
 export default {
   name: 'Home',
   data: () => ({
       username: '',
-
   }),
   methods: {
-    createNewRoom() {
+    ...mapActions([
+      'createUser',
+    ]),
+    async createNewRoom() {
       if (this.username) {
-        const roomId = generateId();
+        this.createUser(this.username);
+        const roomId = await generateId();
+
         this.$router.push({ name: 'Room', params: { roomId } });
       }
     }
+  },
+  computed: {
+    ...mapGetters([
+      'getRoomOwner'
+    ]),
   },
 }
 </script>

@@ -1,10 +1,11 @@
 export const mutationsTypes = {
-  ADD_USER: 'ADD_USER',
+  CREATE_USER: 'CREATE_USER',
 }
 
 const mutations = {
-  [mutationsTypes.ADD_USER](state, user) {
-    state.userList[user] = new RTCPeerConnection();
+  [mutationsTypes.CREATE_USER](state, username) {
+    state.roomOwner = username;
+    state.userList[username] = new RTCPeerConnection();
   },
 };
 

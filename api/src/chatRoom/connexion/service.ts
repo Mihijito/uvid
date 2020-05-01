@@ -52,6 +52,7 @@ export class ChatRoomConnexionServiceImpl implements ChatRoomConnexionService {
     this.io.on(ConferenceEvents.CONNECT, (socket: Socket) => {
       socket.on(ConferenceEvents.CREATE_ROOM, (newRoom: string) => {
         const { username, roomId } = JSON.parse(newRoom);
+        console.log(`${username} && ${roomId}`);
         socket.join(roomId);
 
         this.registerUser(username, roomId, socket.id);
@@ -104,7 +105,7 @@ export class ChatRoomConnexionServiceImpl implements ChatRoomConnexionService {
 
 
   private updateClientUserList(socket: Socket, roomId: string) {
-    const userList = this.createClientUserList(socket, roomId);
+    const userList = this.createClientUserList(roomId);
     socket.emit(ConferenceEvents.INITIALIZE_USERLIST, JSON.stringify(userList));
   };
 
@@ -128,7 +129,7 @@ export class ChatRoomConnexionServiceImpl implements ChatRoomConnexionService {
     console.log(`${user.username} registered`)
   };
 
-  private createClientUserList = (socket: Socket, roomId: string): string[] => {
+  private createClientUserList = (roomId: string): string[] => {
     const connectedSockets = this.openedRooms.getRoom(roomId);
 
     const usernameList: string[] = connectedSockets.reduce<string[]>((usernameList, socketId: string) => {

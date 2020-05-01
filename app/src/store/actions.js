@@ -1,9 +1,9 @@
 import { mutationsTypes } from './mutations';
 
 const actions = {
-  addNewUser({ state, commit}, user) {
-    if (!(user in state.userList)) commit(mutationsTypes.ADD_USER, user);
-  }
+  createUser({ commit}, username) {
+    commit(mutationsTypes.CREATE_USER, username);
+  },
 }
 
 export default actions
