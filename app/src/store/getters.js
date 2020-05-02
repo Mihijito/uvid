@@ -1,5 +1,5 @@
 const getters = {
-  getRoomOwner: (state) => state.roomOwner,
+  getClientOwner: (state) => state.clientOwner,
   getUsernamesList: (state) => state.userList,
 }
 

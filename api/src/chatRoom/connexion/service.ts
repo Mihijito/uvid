@@ -14,11 +14,13 @@ const enum ConferenceEvents {
   CALL_REQUEST = 'call-request',
   CALL_OFFER = 'callOffer',
   CREATE_ROOM = 'create-room',
-  USER_DISCONNECTED = 'user-disconnected',
+  USER_DISCONNECTED = 'userDisconnected',
   USER_JOINED = 'userJoined',
   CALL_RESPONSE = 'call-response',
   CALL_ANSWER = 'call-answer',
   INIT_USERLIST = 'initUserList',
+  NEW_ICE_CANDIDATE_TRANSFER_REQUEST = 'newIceCandidateTransferRequest',
+  NEW_ICE_CANDIDATE = 'newIceCandidate',
 }
 
 type User = {
@@ -82,7 +84,7 @@ export class ChatRoomConnexionServiceImpl implements ChatRoomConnexionService {
         console.log(`Call request received ${socketId}`);
         const callerUsername = this.userBySocketId.get(socket.id)?.username;
         if (socketId) socket.to(socketId).emit(ConferenceEvents.CALL_OFFER, JSON.stringify({ callerUsername, offer }));
-      })
+      });
 
       socket.on(ConferenceEvents.CALL_RESPONSE, (responseInfos: string) => {
         const { callerUsername, answer } = JSON.parse(responseInfos);
@@ -91,7 +93,7 @@ export class ChatRoomConnexionServiceImpl implements ChatRoomConnexionService {
 
         console.log(`Call response received ${socketId} from ${callerUsername}`);
         if (socketId) socket.to(socketId).emit(ConferenceEvents.CALL_ANSWER, JSON.stringify({ calleeUsername, answer }))
-      })
+      });
 
       socket.on('disconnect-user', () => {
         console.log('Disconnect user');
@@ -99,7 +101,7 @@ export class ChatRoomConnexionServiceImpl implements ChatRoomConnexionService {
         const roomId = user?.roomId;
         this.unregisterUser(socket.id);
         socket.to(roomId!).emit(ConferenceEvents.USER_DISCONNECTED, user?.username);
-      })
+      });
 
       socket.on(ConferenceEvents.DISCONNECT, () => {
         console.log('Disconnect user');
@@ -107,6 +109,15 @@ export class ChatRoomConnexionServiceImpl implements ChatRoomConnexionService {
         const roomId = user?.roomId;
         this.unregisterUser(socket.id);
         socket.to(roomId!).emit(ConferenceEvents.USER_DISCONNECTED, user?.username);
+      });
+
+      socket.on(ConferenceEvents.NEW_ICE_CANDIDATE_TRANSFER_REQUEST, (iceInfos: string) => {
+        const { discoverer, iceCandidate } = JSON.parse(iceInfos);
+        const discovererSocketId = this.socketIdByUsername.get(discoverer);
+        const correspondent = this.userBySocketId.get(socket.id)?.username;
+
+        console.log(`Ice candidate for ${correspondent} sent to ${discovererSocketId}`);
+        if (discovererSocketId && correspondent) socket.to(discovererSocketId).emit(ConferenceEvents.NEW_ICE_CANDIDATE, JSON.stringify({ correspondent, iceCandidate }));
       });
     });
   }

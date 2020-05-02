@@ -12,6 +12,7 @@
 </template>
 
 <script>
+import { mapActions } from 'vuex';
 export default {
   name: 'RoomLobby',
   data: () => ({
@@ -24,8 +25,12 @@ export default {
     }
   },
   methods: {
+    ...mapActions([
+      'setClientOwner',
+    ]),
     joinRoom() {
       if (this.username && this.roomId) {
+        this.setClientOwner(this.username);
         this.$socket.client.emit('join-room', JSON.stringify({ username: this.username, roomId: this.roomId }));
         this.$router.push({ name: 'Room', params: { roomId: this.roomId } });
       }
