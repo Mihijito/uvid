@@ -32,7 +32,7 @@ export default {
         this.$socket.client.emit('create-room', JSON.stringify({ username: this.username, roomId }));
         this.$router.push({ name: 'Room', params: { roomId } });
       }
-    }
+    },
   },
   computed: {
     ...mapGetters([
