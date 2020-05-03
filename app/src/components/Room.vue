@@ -1,25 +1,28 @@
 <template>
-  <div>
+  <div id="conference-page">
     <page-title :title="`Room link: http://localhost:8081/#/join/${this.$route.params.roomId}`" />
     <div id="room">
-      <div class="user-viewport">
+      <div>
         <div class="user-name">
           {{this.getClientOwner}}
         </div>
-        <div id="localVideo">
+        <div id="local-video">
           <video class="cam" ref="localVideo"></video>
         </div>
       </div>
       <div id="videos" v-for="username in getUsernames" :key="username">
-        <div class="user-viewport">
+        <div id="user-viewport">
           <div class="user-name">
             {{username}}
           </div>
-          <div>
+          <div id="remote-video">
             <video class="cam" :id="username" />
           </div>
           </div>
       </div>
+    </div>
+    <div>
+      <button id="leave-button" v-on:click="redirectToHome">Quit</button>
     </div>
   </div>
 </template>
@@ -107,6 +110,9 @@ export default {
     ...mapActions([
       'addLocalTracks',
     ]),
+    redirectToHome() {
+      this.$router.push({ name: 'Home' });
+    },
     addEventListenerToConnection(discoverer, peerConnection) {
       peerConnection.addEventListener('icecandidate', event => {
         if (event.candidate) {
@@ -160,25 +166,33 @@ export default {
 </script>
 
 <style scoped>
+#conference-page {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  align-content: center;
+}
+
 #room {
   display: flex;
   justify-content: center;
-  margin-top: 3em;
   width: 100%;
   flex-wrap: wrap;
+}
+
+#user-viewport {
+  margin-left: 2em;
 }
 
 #videos {
   display: flex;
 }
 
-#localVideo {
+#local-video {
   display: flex;
 }
 
-.user-viewport {
-  margin-top: 3em;
-  margin-right: 2em;
+#remote-video {
 }
 
 .cam {
@@ -195,5 +209,15 @@ export default {
   text-align: left;
   padding-left: 1.5em;
   margin-bottom: 0.25em;
+}
+
+#leave-button {
+  background-color: #eee;
+  font-size: large;
+  bottom: 5em;
+  left: 50%;
+  padding: 0.5em 1em;
+  border-radius: 10px;
+  color: grey;
 }
 </style>
