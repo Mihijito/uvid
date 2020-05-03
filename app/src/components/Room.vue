@@ -1,19 +1,23 @@
 <template>
-  <div>
+  <div id="room">
     <page-title :title="`Room link: http://localhost:8081/#/join/${this.$route.params.roomId}`" />
-    <div>
-      {{this.getClientOwner}}
-    </div>
-    <div id="localVideo">
-      <video class="cam" ref="localVideo"></video>
+    <div class="user-viewport">
+      <div>
+        {{this.getClientOwner}}
+      </div>
+      <div id="localVideo">
+        <video class="cam" ref="localVideo"></video>
+      </div>
     </div>
     <div id="videos" v-for="username in getUsernames" :key="username">
-      <div>
-        {{username}}
-      </div>
-      <div>
-        <video class="cam" :id="username" />
-      </div>
+      <div class="user-viewport">
+        <div>
+          {{username}}
+        </div>
+        <div>
+          <video class="cam" :id="username" />
+        </div>
+        </div>
     </div>
   </div>
 </template>
@@ -154,6 +158,10 @@ export default {
 </script>
 
 <style scoped>
+#room {
+  margin-top: 3em;
+}
+
 #videos {
   display: flex;
   flex-direction: column;
@@ -161,6 +169,10 @@ export default {
 
 #localVideo {
   display: flex;
+}
+
+.user-viewport {
+  margin-top: 3em;
 }
 
 .cam {
