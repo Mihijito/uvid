@@ -13,6 +13,7 @@
 
 <script>
 import generateId from '../roomIdGenerator/idGenerator';
+import { mapActions } from 'vuex';
 
 export default {
   name: 'Home',
@@ -20,10 +21,16 @@ export default {
     username: '',
   }),
   methods: {
+    ...mapActions([
+      'setClientOwner',
+      'setRoomId',
+    ]),
     async createNewRoom() {
       if (this.username) {
         const roomId = await generateId();
 
+        this.setClientOwner(this.username);
+        this.setRoomId(roomId);
         this.$socket.client.emit('create-room', JSON.stringify({ username: this.username, roomId }));
         this.$router.push({ name: 'Room', params: { roomId } });
       }

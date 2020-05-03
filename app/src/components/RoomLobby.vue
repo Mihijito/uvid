@@ -19,18 +19,15 @@ export default {
     roomId: '',
     username: '',
   }),
-  sockets: {
-    userJoined(username) {
-      this.$socket.client.emit('call-request',username)
-    }
-  },
   methods: {
     ...mapActions([
       'setClientOwner',
+      'setRoomId',
     ]),
     joinRoom() {
       if (this.username && this.roomId) {
         this.setClientOwner(this.username);
+        this.setRoomId(this.roomId);
         this.$socket.client.emit('join-room', JSON.stringify({ username: this.username, roomId: this.roomId }));
         this.$router.push({ name: 'Room', params: { roomId: this.roomId } });
       }

@@ -1,65 +1,33 @@
 import { mutationsTypes } from './mutations';
 
 
-const configuration = {'iceServers': [
-  {'urls': 'stun:stun.l.google.com:19302'},
-  {'urls': 'stun:stun1.l.google.com:19302'}
-]}
-
-function addEventListenerToConnection(context, discoverer, peerConnection) {
+/*function addEventListenerToConnection(context, discoverer, peerConnection) {
   peerConnection.addEventListener('icecandidate', event => {
     if (event.candidate) {
       console.log(`${discoverer} found a new iceCandidate`);
       context._vm.$socket.client.emit('newIceCandidateTransferRequest', JSON.stringify({ discoverer, iceCandidate: event.candidate }));
     }
   });
-  return peerConnection;
-}
+  peerConnection.addEventListener('connectionstatechange', () => {
+    if (peerConnection.connectionState === 'connected') {
+      console.log(`Connection with ${discoverer} established`);
+    }
+  });
+  peerConnection.addEventListener('track', async (event) => {
+    console.log('hey');
+    const video = document.getElementById(discoverer);
+    if (!video.srcObject) {
+      video.srcObject = event.streams[0];
+    }
+  });
+}*/
 
 const actions = {
-  socket_initUserList({state, commit}, payload) {
-    payload.forEach(username => {
-      if (!(username in state.userList)) {
-        console.log(username);
-        const connection = new RTCPeerConnection(configuration);
-        addEventListenerToConnection(this, username, connection)
-        commit(mutationsTypes.ADD_USER, { username, connection });
-      }
-    });
+  setClientOwner({commit}, username) {
+    commit(mutationsTypes.SET_CLIENT_OWNER, username);
   },
-  async socket_userJoined({state, commit}, username) {
-    if (!(username in state.userList)){
-      const connection = new RTCPeerConnection(configuration);
-      addEventListenerToConnection(this, username, connection)
-      const offer = await connection.createOffer({ offerToReceiveVideo: true, offerToReceiveAudio: true });
-      await connection.setLocalDescription(offer);
-      console.log(`${username} saved local description`);
-
-      commit(mutationsTypes.ADD_USER, { username, connection });
-
-      this._vm.$socket.client.emit('call-request', JSON.stringify({ callee: username, offer }));
-      console.log(`Call request sent to ${username}`)
-    }
-  },
-  async socket_callOffer({state}, offerInfo) {
-    const { callerUsername, offer } = JSON.parse(offerInfo);
-    if (callerUsername in state.userList) {
-      await state.userList[callerUsername].setRemoteDescription(offer);
-
-      const connection = state.userList[callerUsername];
-      const answer = await connection.createAnswer();
-      await state.userList[callerUsername].setLocalDescription(answer);
-
-      console.log(`${callerUsername} saved local and remote description`)
-      this._vm.$socket.client.emit('call-response', JSON.stringify({ callerUsername, answer }));
-    }
-  },
-  async socket_callAnswer({state}, answerInfo) {
-    const { calleeUsername, answer } = JSON.parse(answerInfo);
-    if (calleeUsername in state.userList) {
-      await state.userList[calleeUsername].setRemoteDescription(answer);
-      console.log(`${calleeUsername} saved remote description`)
-    }
+  setRoomId({commit}, roomId) {
+    commit(mutationsTypes.SET_ROOM_ID, roomId);
   },
   async socket_userDisconnected({commit}, username) {
     commit(mutationsTypes.USER_QUIT, username);
@@ -67,6 +35,17 @@ const actions = {
   async socket_newIceCandidate({commit}, iceCandidateInfos) {
     const { correspondent, iceCandidate } = JSON.parse(iceCandidateInfos);
     commit(mutationsTypes.SAVE_ICE_CANDIDATE, { correspondent, iceCandidate });
+  },
+  async addLocalTracks({state}, localStream) {
+    localStream.getTracks().forEach((track) => {
+      Object.keys(state.userList).forEach(async user => {
+        console.log(user)
+        if (user !== state.clientOwner) {
+          await state.userList[user].addTrack(track);
+        }
+      })
+    })
+    localStream.getAudioTracks()[0].enabled = false;
   },
 }
 

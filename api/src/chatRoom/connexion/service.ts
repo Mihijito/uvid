@@ -21,6 +21,8 @@ const enum ConferenceEvents {
   INIT_USERLIST = 'initUserList',
   NEW_ICE_CANDIDATE_TRANSFER_REQUEST = 'newIceCandidateTransferRequest',
   NEW_ICE_CANDIDATE = 'newIceCandidate',
+  TRACKS = 'tracks',
+  BROADCAST_TRACK = 'broadcastTrack',
 }
 
 type User = {
@@ -73,6 +75,10 @@ export class ChatRoomConnexionServiceImpl implements ChatRoomConnexionService {
 
           this.updateClientUserList(socket, roomId);
           socket.to(roomId).emit(ConferenceEvents.USER_JOINED, username);
+          setTimeout(function () {
+            console.log('sent');
+            socket.to(roomId).emit('userJoined2', username);
+          }, 500);
         }
       });
 
@@ -115,6 +121,7 @@ export class ChatRoomConnexionServiceImpl implements ChatRoomConnexionService {
         const { discoverer, iceCandidate } = JSON.parse(iceInfos);
         const discovererSocketId = this.socketIdByUsername.get(discoverer);
         const correspondent = this.userBySocketId.get(socket.id)?.username;
+        console.log(iceCandidate);
 
         console.log(`Ice candidate for ${correspondent} sent to ${discovererSocketId}`);
         if (discovererSocketId && correspondent) socket.to(discovererSocketId).emit(ConferenceEvents.NEW_ICE_CANDIDATE, JSON.stringify({ correspondent, iceCandidate }));
