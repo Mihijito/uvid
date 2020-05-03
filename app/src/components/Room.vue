@@ -1,23 +1,25 @@
 <template>
-  <div id="room">
+  <div>
     <page-title :title="`Room link: http://localhost:8081/#/join/${this.$route.params.roomId}`" />
-    <div class="user-viewport">
-      <div>
-        {{this.getClientOwner}}
-      </div>
-      <div id="localVideo">
-        <video class="cam" ref="localVideo"></video>
-      </div>
-    </div>
-    <div id="videos" v-for="username in getUsernames" :key="username">
+    <div id="room">
       <div class="user-viewport">
-        <div>
-          {{username}}
+        <div class="user-name">
+          {{this.getClientOwner}}
         </div>
-        <div>
-          <video class="cam" :id="username" />
+        <div id="localVideo">
+          <video class="cam" ref="localVideo"></video>
         </div>
-        </div>
+      </div>
+      <div id="videos" v-for="username in getUsernames" :key="username">
+        <div class="user-viewport">
+          <div class="user-name">
+            {{username}}
+          </div>
+          <div>
+            <video class="cam" :id="username" />
+          </div>
+          </div>
+      </div>
     </div>
   </div>
 </template>
@@ -159,12 +161,15 @@ export default {
 
 <style scoped>
 #room {
+  display: flex;
+  justify-content: center;
   margin-top: 3em;
+  width: 100%;
+  flex-wrap: wrap;
 }
 
 #videos {
   display: flex;
-  flex-direction: column;
 }
 
 #localVideo {
@@ -173,10 +178,22 @@ export default {
 
 .user-viewport {
   margin-top: 3em;
+  margin-right: 2em;
 }
 
 .cam {
-  width: 100%;
-  height: 100%;
+  max-width: 400px;
+  border-radius: 10px;
+}
+
+.user-name {
+  display: flex;
+  flex-direction: column;
+  font-weight: bold;
+  font-size: large;
+  color: #eee;
+  text-align: left;
+  padding-left: 1.5em;
+  margin-bottom: 0.25em;
 }
 </style>
