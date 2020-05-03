@@ -143,6 +143,7 @@ export default {
     this.video = this.$refs.localVideo;
     const webcamStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
     this.video.srcObject = webcamStream;
+    this.video.muted = true;
     this.video.play();
   },
 }
