@@ -5,14 +5,14 @@
       {{this.getClientOwner}}
     </div>
     <div id="localVideo">
-      <video id="cam" ref="localVideo"></video>
+      <video class="cam" ref="localVideo"></video>
     </div>
     <div id="videos" v-for="username in getUsernames" :key="username">
       <div>
         {{username}}
       </div>
       <div>
-        <video :id="username" />
+        <video class="cam" :id="username" />
       </div>
     </div>
   </div>
@@ -72,12 +72,16 @@ export default {
         await userList[callerUsername].setLocalDescription(answer);
 
         console.log(`${callerUsername} saved local answer`)
+
+        const video = document.getElementById(callerUsername);
+        video.play();
         this.$socket.client.emit('call-response', JSON.stringify({ callerUsername, answer }));
       }
     },
     async callAnswer(answerInfo) {
       const userList = this.getUsernamesList;
       const { calleeUsername, answer } = JSON.parse(answerInfo);
+      console.log('asdf')
       if (calleeUsername in userList) {
         await userList[calleeUsername].setRemoteDescription(answer)
         console.log(`${calleeUsername} saved remote answer`)
@@ -92,8 +96,6 @@ export default {
     ]),
     ...mapActions([
       'addLocalTracks',
-      'addUser',
-      'addConnection'
     ]),
     addEventListenerToConnection(discoverer, peerConnection) {
       peerConnection.addEventListener('icecandidate', event => {
@@ -156,7 +158,7 @@ export default {
   display: flex;
 }
 
-#cam {
+.cam {
   width: 100%;
   height: 100%;
 }
