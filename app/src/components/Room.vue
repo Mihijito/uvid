@@ -1,6 +1,6 @@
 <template>
   <div>
-    Room link: {{`http://localhost:8081/#/join/${this.$route.params.roomId}`}}
+    <page-title :title="`Room link: http://localhost:8081/#/join/${this.$route.params.roomId}`" />
     <div>
       {{this.getClientOwner}}
     </div>
@@ -21,9 +21,13 @@
 <script>
 import { mapGetters, mapActions, mapMutations } from 'vuex';
 import Vue from 'vue';
+import pageTitle from './pageTitle';
 
 export default {
   name: 'Room',
+  components: {
+    pageTitle,
+  },
   data: () => ({
     localStream: {},
     video: {},

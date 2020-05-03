@@ -1,27 +1,5 @@
 import { mutationsTypes } from './mutations';
 
-
-/*function addEventListenerToConnection(context, discoverer, peerConnection) {
-  peerConnection.addEventListener('icecandidate', event => {
-    if (event.candidate) {
-      console.log(`${discoverer} found a new iceCandidate`);
-      context._vm.$socket.client.emit('newIceCandidateTransferRequest', JSON.stringify({ discoverer, iceCandidate: event.candidate }));
-    }
-  });
-  peerConnection.addEventListener('connectionstatechange', () => {
-    if (peerConnection.connectionState === 'connected') {
-      console.log(`Connection with ${discoverer} established`);
-    }
-  });
-  peerConnection.addEventListener('track', async (event) => {
-    console.log('hey');
-    const video = document.getElementById(discoverer);
-    if (!video.srcObject) {
-      video.srcObject = event.streams[0];
-    }
-  });
-}*/
-
 const actions = {
   setClientOwner({commit}, username) {
     commit(mutationsTypes.SET_CLIENT_OWNER, username);

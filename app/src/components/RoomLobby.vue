@@ -1,24 +1,32 @@
 <template>
-  <div class="signin-form">
+  <div id="joinin-form">
+    <page-title title="Join a room!" />
     <div>
-      <input type="text" v-model="username" placeholder="Enter your username">
+      <input class="username-input" type="text" v-model="username" placeholder="Enter your username">
     </div>
     <div>
-      <button v-on:click="joinRoom">
+      <base-button :onClick="joinRoom">
         Join Room
-      </button>
+      </base-button>
     </div>
   </div>
 </template>
 
 <script>
 import { mapActions } from 'vuex';
+import baseButton from './baseButton';
+import pageTitle from './pageTitle';
+
 export default {
   name: 'RoomLobby',
   data: () => ({
     roomId: '',
     username: '',
   }),
+  components: {
+    baseButton,
+    pageTitle,
+  },
   methods: {
     ...mapActions([
       'setClientOwner',
@@ -40,8 +48,16 @@ export default {
 </script>
 
 <style scoped>
-#signin-form {
+#joinin-form {
   display: flex;
   flex-direction: column;
+  justify-content: center;
+}
+.username-input {
+  margin: 3em 0;
+  background-color: #eee;
+  padding: 1em 3em;
+  border:none;
+  border-radius: 3px;
 }
 </style>
