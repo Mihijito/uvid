@@ -5,7 +5,6 @@ import VueSocketIOExt from 'vue-socket.io-extended';
 import routes from './router/routes';
 import store from './store';
 import io from 'socket.io-client';
-require('dotenv').config()
 
 Vue.use(VueRouter);
 

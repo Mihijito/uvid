@@ -192,9 +192,6 @@ export default {
   display: flex;
 }
 
-#remote-video {
-}
-
 .cam {
   max-width: 400px;
   border-radius: 10px;
