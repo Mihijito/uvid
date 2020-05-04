@@ -1,6 +1,6 @@
 <template>
   <div id="conference-page">
-    <page-title :title="`Room link: http://localhost:8081/#/join/${this.$route.params.roomId}`" />
+    <page-title :title="`Room link: https://uvid-webapp.herokuapp.com/#/join/${this.$route.params.roomId}`" />
     <div id="room">
       <div>
         <div class="user-name">
