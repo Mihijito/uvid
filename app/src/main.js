@@ -13,7 +13,7 @@ Vue.config.productionTip = false
 
 const router = new VueRouter({ routes });
 
-const socket = io('http://localhost:8080');
+const socket = io(process.env.VUE_APP_API_URL);
 Vue.use(VueSocketIOExt, socket, { store });
 
 new Vue({
